@@ -1,0 +1,41 @@
+version: '3.3'
+services:
+  db:
+    container_name: db_container
+    image: mysql:5.7
+    restart: always
+    command: mysqld --sql_mode="" --character-set-server=utf8 --collation-server=utf8_general_ci --init-connect='SET NAMES UTF8;' --innodb-flush-log-at-trx-commit=0
+    environment:
+      MYSQL_DATABASE: 'mysqldb'
+      MYSQL_USER: 'root'
+      MYSQL_PASSWORD: 'demodemo'
+      MYSQL_ROOT_PASSWORD: 'demodemo'
+    networks:
+      - developnet
+    volumes:
+      - ./data/mysql/:/var/lib/mysql
+    ports:
+      - "3306:3306"
+  api:
+    container_name: node_container
+    tty: true
+    image: my_custom_node_image
+    build: .
+    ports:
+      - 3001:3001
+    working_dir: /app
+    volumes:
+      - .:/app
+      - nodemodules:/app/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - developnet
+    command: sh -c 'npm run dev'
+volumes:
+  nodemodules:
+networks:
+  developnet:
+    external: true
